@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FocusFlow — Smart Study Planner & Focus Timer</title>
+  <meta name="description" content="A premium, minimal productivity dashboard for students and self-learners featuring task management and a synchronized focus timer.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header / Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-logo" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">FocusFlow</h1>
+          <p class="brand-subtitle">Smart Study Planner</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="date-badge" id="currentDateBadge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          <span id="headerDateText">Today</span>
+        </div>
+        <button id="soundToggleBtn" class="icon-button" title="Toggle audio alert chime" aria-label="Toggle sound alerts">
+          <svg id="soundIconOn" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          </svg>
+          <svg id="soundIconOff" class="hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="1" y1="1" x2="23" y2="23"></line>
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M23 9l-6 6"></path>
+          </svg>
+        </button>
+        <button id="openNewTaskBtn" class="btn btn-primary" aria-label="Create new study task">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>New Task</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Layout -->
+  <main class="main-layout">
+    <div class="layout-container">
+      
+      <!-- Left Sidebar: Focus Timer & Progress Stats -->
+      <aside class="sidebar-panel">
+        
+        <!-- Focus Timer Card -->
+        <section class="card timer-card" aria-label="Study Focus Timer">
+          <div class="card-header">
+            <div class="section-title-wrap">
+              <span class="indicator-dot"></span>
+              <h2 class="section-title">Focus Station</h2>
+            </div>
+            <span class="tag-status" id="timerStatusPill">Ready</span>
+          </div>
+
+          <!-- Mode Selector Tabs -->
+          <div class="timer-mode-selector" role="tablist" aria-label="Timer modes">
+            <button class="mode-tab active" data-mode="focus" role="tab" aria-selected="true">25m Focus</button>
+            <button class="mode-tab" data-mode="shortBreak" role="tab" aria-selected="false">5m Break</button>
+            <button class="mode-tab" data-mode="longBreak" role="tab" aria-selected="false">15m Long</button>
+          </div>
+
+          <!-- Circular Clock Graphic -->
+          <div class="timer-display-container">
+            <svg class="progress-ring" viewBox="0 0 220 220" width="200" height="200" aria-hidden="true">
+              <circle class="progress-ring-bg" stroke="rgba(255,255,255,0.06)" stroke-width="8" fill="transparent" r="92" cx="110" cy="110" />
+              <circle id="timerProgressRing" class="progress-ring-indicator" stroke="url(#violetGradient)" stroke-width="8" stroke-linecap="round" fill="transparent" r="92" cx="110" cy="110" />
+              <defs>
+                <linearGradient id="violetGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#a78bfa" />
+                  <stop offset="100%" stop-color="#7c3aed" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="timer-digits-wrap">
+              <div class="timer-time" id="timerDisplay">25:00</div>
+              <div class="timer-mode-label" id="timerModeLabel">Deep Study Session</div>
+            </div>
+          </div>
+
+          <!-- Active Task Binding Banner -->
+          <div class="focusing-on-banner" id="focusingOnBanner">
+            <span class="focus-label">Linked Task:</span>
+            <span class="focus-task-name" id="focusTaskName">No task selected</span>
+            <button id="clearFocusTaskBtn" class="btn-text-xs hidden" title="Unlink task">Unlink</button>
+          </div>
+
+          <!-- Timer Controls -->
+          <div class="timer-actions">
+            <button id="timerToggleBtn" class="btn btn-primary btn-lg" aria-label="Start study timer">
+              <svg id="timerPlayIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              <svg id="timerPauseIcon" class="hidden" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="6" y="4" width="4" height="16"></rect>
+                <rect x="14" y="4" width="4" height="16"></rect>
+              </svg>
+              <span id="timerToggleBtnText">Start Focus</span>
+            </button>
+            <button id="timerResetBtn" class="btn btn-secondary" title="Reset timer to mode default" aria-label="Reset timer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                <path d="M3 3v5h5"></path>
+              </svg>
+              <span>Reset</span>
+            </button>
+          </div>
+
+          <div class="timer-footer-stats">
+            <div class="mini-stat">
+              <span class="mini-stat-label">Sessions Today</span>
+              <span class="mini-stat-value" id="completedSessionsCount">0</span>
+            </div>
+            <div class="mini-stat">
+              <span class="mini-stat-label">Focus Time</span>
+              <span class="mini-stat-value" id="totalFocusMinutes">0m</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Progress Overview Card -->
+        <section class="card stats-card" aria-label="Study Progress Summary">
+          <div class="card-header">
+            <h2 class="section-title">Study Metrics</h2>
+            <span class="completion-pill" id="completionRateText">0% Complete</span>
+          </div>
+
+          <!-- Progress bar -->
+          <div class="progress-bar-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="progressBar">
+            <div class="progress-bar-fill" id="progressBarFill" style="width: 0%;"></div>
+          </div>
+
+          <!-- Stats Grid -->
+          <div class="stats-grid">
+            <div class="stat-box">
+              <span class="stat-number" id="statTotalTasks">0</span>
+              <span class="stat-label">Total</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-number highlight-active" id="statActiveTasks">0</span>
+              <span class="stat-label">Remaining</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-number highlight-completed" id="statCompletedTasks">0</span>
+              <span class="stat-label">Done</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Quick Tips / Shortcuts -->
+        <div class="keyboard-tips-box">
+          <span class="keyboard-tips-title">Shortcuts:</span>
+          <span class="kbd-hint"><kbd>N</kbd> New Task</span>
+          <span class="kbd-hint"><kbd>Space</kbd> Start/Pause Timer</span>
+          <span class="kbd-hint"><kbd>/</kbd> Search</span>
+        </div>
+
+      </aside>
+
+      <!-- Right Main Panel: Task Management -->
+      <section class="main-panel" aria-label="Task Planner">
+        
+        <!-- Filter & Search Toolbar -->
+        <div class="card toolbar-card">
+          <div class="toolbar-top">
+            <!-- Search bar -->
+            <div class="search-input-wrap">
+              <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="text" id="taskSearchInput" placeholder="Search tasks, categories, or notes..." aria-label="Search study tasks">
+              <button id="clearSearchBtn" class="clear-btn hidden" aria-label="Clear search">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Category Filter Dropdown -->
+            <div class="filter-dropdown-wrap">
+              <label for="categoryFilter" class="sr-only">Filter by Category</label>
+              <select id="categoryFilter" class="select-control" aria-label="Filter tasks by category">
+                <option value="all">All Categories</option>
+                <option value="Revision">Revision</option>
+                <option value="Problem Sets">Problem Sets</option>
+                <option value="Reading">Reading</option>
+                <option value="Coding">Coding</option>
+                <option value="Writing">Writing</option>
+                <option value="Research">Research</option>
+                <option value="Exam Prep">Exam Prep</option>
+              </select>
+            </div>
+
+            <!-- Sort Dropdown -->
+            <div class="filter-dropdown-wrap">
+              <label for="taskSortSelect" class="sr-only">Sort Tasks</label>
+              <select id="taskSortSelect" class="select-control" aria-label="Sort study tasks">
+                <option value="dueDate">Due Date (Soonest)</option>
+                <option value="priority">Priority (High to Low)</option>
+                <option value="title">Alphabetical (A-Z)</option>
+                <option value="newest">Recently Added</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="toolbar-bottom">
+            <!-- Status Tabs -->
+            <nav class="status-tabs" role="tablist" aria-label="Filter by task completion status">
+              <button class="status-tab active" data-status="all" role="tab" aria-selected="true">
+                All <span class="tab-badge" id="badgeAll">0</span>
+              </button>
+              <button class="status-tab" data-status="active" role="tab" aria-selected="false">
+                Active <span class="tab-badge" id="badgeActive">0</span>
+              </button>
+              <button class="status-tab" data-status="completed" role="tab" aria-selected="false">
+                Completed <span class="tab-badge" id="badgeCompleted">0</span>
+              </button>
+            </nav>
+
+            <!-- Bulk actions -->
+            <div class="bulk-actions-wrap">
+              <button id="clearCompletedBtn" class="btn-text-sm" title="Clear all completed tasks" disabled>
+                Clear Completed
+              </button>
+              <button id="resetSampleTasksBtn" class="btn-text-sm" title="Load sample study tasks">
+                Load Samples
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Task List Container -->
+        <div class="tasks-container">
+          <ul class="task-list" id="taskList" aria-label="Study task list">
+            <!-- Dynamically populated tasks will appear here -->
+          </ul>
+
+          <!-- Empty State -->
+          <div class="empty-state-card hidden" id="emptyState">
+            <div class="empty-icon-wrap" aria-hidden="true">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="9" y1="15" x2="15" y2="15"></line>
+              </svg>
+            </div>
+            <h3 class="empty-title" id="emptyStateTitle">No tasks found</h3>
+            <p class="empty-desc" id="emptyStateDesc">Your study plan is completely clear. Add your first study task or adjust your search filters.</p>
+            <button id="emptyStateAddBtn" class="btn btn-secondary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              <span>Create Task</span>
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Task Modal (Add & Edit) -->
+  <div class="modal-backdrop hidden" id="taskModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">Add Study Task</h2>
+        <button id="closeModalBtn" class="icon-button modal-close" aria-label="Close modal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <form id="taskForm" novalidate>
+        <input type="hidden" id="taskIdInput">
+
+        <div class="form-group">
+          <label for="taskTitleInput" class="form-label">Task Title <span class="required-star">*</span></label>
+          <input 
+            type="text" 
+            id="taskTitleInput" 
+            class="form-input" 
+            placeholder="e.g., Read Quantum Mechanics Ch. 4 & derive wave equation" 
+            maxlength="140"
+            required
+            autocomplete="off"
+          >
+          <span class="form-error-msg" id="titleErrorMsg">Task title is required.</span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="taskCategoryInput" class="form-label">Category</label>
+            <select id="taskCategoryInput" class="form-input select-control">
+              <option value="Revision">Revision</option>
+              <option value="Problem Sets">Problem Sets</option>
+              <option value="Reading">Reading</option>
+              <option value="Coding">Coding</option>
+              <option value="Writing">Writing</option>
+              <option value="Research">Research</option>
+              <option value="Exam Prep">Exam Prep</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="taskPriorityInput" class="form-label">Priority</label>
+            <select id="taskPriorityInput" class="form-input select-control">
+              <option value="high">High Priority</option>
+              <option value="medium" selected>Medium Priority</option>
+              <option value="low">Low Priority</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="taskDueDateInput" class="form-label">Due Date</label>
+            <input type="date" id="taskDueDateInput" class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label for="taskEstSessionsInput" class="form-label">Est. Pomodoros</label>
+            <input type="number" id="taskEstSessionsInput" class="form-input" min="1" max="10" value="1" placeholder="1">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="taskNotesInput" class="form-label">Notes & Objectives (Optional)</label>
+          <textarea id="taskNotesInput" class="form-textarea" rows="3" placeholder="Key formulas, page numbers, or submission checklist..."></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="cancelModalBtn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" id="saveTaskBtn" class="btn btn-primary">
+            <span id="saveBtnText">Save Task</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification System -->
+  <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-left">
+        <span class="footer-tag">FocusFlow v1.0</span>
+        <span class="footer-desc">• Built with pure HTML, CSS, and Vanilla JS</span>
+      </div>
+      <div class="footer-right">
+        <span>Offline-Ready • Safe Auto-Sync to LocalStorage</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
